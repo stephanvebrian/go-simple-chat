@@ -11,6 +11,12 @@ const (
 	dbName = "database.sqlite"
 )
 
+// DBInterface defines the methods expected from sql.DB
+type DBInterface interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+}
+
 func NewDatabase() (*sql.DB, error) {
 	return sql.Open("sqlite3", dbName)
 }

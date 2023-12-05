@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"database/sql"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog/log"
+	"github.com/stphanvebrian/go-simple-chat/usecase/repository"
 )
 
 var (
@@ -17,14 +17,14 @@ var (
 	messageBuffer = make([]string, 0)
 )
 
-func NewChat(router *mux.Router, db *sql.DB) *mux.Router {
+func NewChat(router *mux.Router, db repository.DBInterface) *mux.Router {
 
 	router.HandleFunc("/ws/{sender}/{recipient}", websocketHandler(db))
 
 	return router
 }
 
-func websocketHandler(db *sql.DB) http.HandlerFunc {
+func websocketHandler(db repository.DBInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		sender := params["sender"]
@@ -108,12 +108,12 @@ func broadcast(sender, recipient, message string) {
 	}
 }
 
-func saveMessage(db *sql.DB, sender, recipient, message string) error {
+func saveMessage(db repository.DBInterface, sender, recipient, message string) error {
 	_, err := db.Exec("INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)", sender, recipient, message)
 	return err
 }
 
-func getMessages(db *sql.DB, sender, recipient string) ([]string, error) {
+func getMessages(db repository.DBInterface, sender, recipient string) ([]string, error) {
 	rows, err := db.Query("SELECT message FROM messages WHERE (sender = ? AND recipient = ?) OR (sender = ? AND recipient = ?) ORDER BY id", sender, recipient, recipient, sender)
 	if err != nil {
 		return nil, err
