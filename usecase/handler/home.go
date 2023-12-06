@@ -8,6 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	fnParseFiles = template.ParseFiles
+)
+
 func NewHome(router *mux.Router) *mux.Router {
 
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -17,9 +21,9 @@ func NewHome(router *mux.Router) *mux.Router {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("static/index.html")
+	tmpl, err := fnParseFiles("static/index.html")
 	if err != nil {
-		log.Info().Err(err)
+		log.Info().Err(err).Str("message", "error while parse files")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
